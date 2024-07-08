@@ -23,50 +23,21 @@ jobs:
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
-        PAGE_SIZE=20    
-        response=$(curl -s -G --data-urlencode "api-key=${API_KEY}" --data-urlencode "order-by=${ORDER_BY}" --data-urlencode "page-size=${PAGE_SIZE}" "${URL}")
-        if [[ $(echo "$response" | jq -r '.response.status') == "ok" ]]; then
-          stageresult=$(echo "$response" | jq -r '.response.results[]')
-          formatted_json_data=$(echo "$stageresult" | sed 's/}/},/g' | sed '$ s/,$//')
-          formatted_json_data="[$formatted_json_data]"
-        fi
-        echo "response=$formatted_json_data" >> $GITHUB_OUTPUT
+        PAGE_SIZE=2 
+        response=$(curl -s -G \
+            --data-urlencode "api-key=$API_KEY" \
+            --data-urlencode "order-by=$ORDER_BY" \
+            --data-urlencode "page-size=$PAGE_SIZE" \
+            "$URL")
+        echo "response=$response" >> $GITHUB_OUTPUT
 
     - name: Process News
       id: process_news
       run: |
         CURRENT=$(date -u +'%s')
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
-
-        current_time=$(date +"%s")
-
-        SEPARATOR='~'
-        last_PublicationDate="$current_time"
         echo ${{ steps.fetch_news.outputs.response }}
-        echo ${{ steps.fetch_news.outputs.response }} | jq -r --arg sep "$SEPARATOR" 'sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | join($sep)' | while IFS="$SEPARATOR" read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
 
-          webPublicationUnixTimestamp=$(date -d "$webPublicationDate" "+%s")
-          last_PublicationDate=$webPublicationUnixTimestamp
-          diff_minutes=$(((current_time - webPublicationUnixTimestamp) / 60))
-
-          if [ $last_timestamp -le $webPublicationUnixTimestamp ]; then
-            if [ "$type" != "liveblog" ]; then
-              formatted=$(date -d "@$webPublicationUnixTimestamp" "+%d %B, %H:%M")
-              formatted=${formatted/#0/}
-
-              url_to_shorten="$webUrl"
-              api_endpoint="https://is.gd/create.php"
-              shorturl=$(curl -s -d "format=simple&url=${url_to_shorten}" "${api_endpoint}")
-
-              if [ -z $shorturl ]; then
-                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$webTitle")
-              else
-                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$shorturl")
-              fi
-              echo "tg_message=$tg_message" >> $GITHUB_OUTPUT
-            fi
-          fi
-        done
 
     - name: Send Telegram messsage
       uses: stellarhub/telegram-message-action@v1
