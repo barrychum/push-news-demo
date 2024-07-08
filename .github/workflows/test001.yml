@@ -20,7 +20,7 @@ jobs:
         VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
         echo "value=$VALUE" >> $GITHUB_OUTPUT
 
-        API_KEY=${{ vars.GUARDIAN_KEY }} 
+        API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
         PAGE_SIZE=50    
