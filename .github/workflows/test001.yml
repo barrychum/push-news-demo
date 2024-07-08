@@ -31,6 +31,7 @@ jobs:
           formatted_json_data="[$formatted_json_data]"
         fi
         echo "response=$formatted_json_data" >> $GITHUB_OUTPUT
+        echo "$formatted_json_data"
 
     - name: Process News
       id: process_news
