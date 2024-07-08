@@ -61,4 +61,4 @@ jobs:
       with:
         chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
         token: ${{ secrets.TELEGRAM_BOT_KEY }}
-        message: ${{ steps.process_news.outputs.tg_message }}
+        message: ${{ steps.fetch_news.outputs.tg_message }}
