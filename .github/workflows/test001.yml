@@ -31,6 +31,23 @@ jobs:
             "$URL")
         echo "response=$response" >> $GITHUB_OUTPUT
 
+        jq -r '.response.results[] | [.webPublicationDate, .sectionName, \
+          .pillarName, .type, .webTitle, .webUrl] | @tsv' <<<"$response" | \
+          while IFS=$'\t' read -r webPublicationDate sectionName pillarName type \ webTitle webUrl; do
+            status="---- NEW ----"
+            if [[ "$type" != "liveblog" ]]; then
+                formatted="test"
+                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$webTitle")
+                echo "$tg_message"
+            else
+                status=" ignore live "
+            fi
+
+            printf "%s (%d min ago) - %s/%s/%s\n%s\n-------%s--------\n" \
+                "$webPublicationDate" "$diff_minutes" "$sectionName" "$pillarName" "$type" "$webTitle" "$status"
+          done
+
+
     - name: Process News
       id: process_news
       run: |
