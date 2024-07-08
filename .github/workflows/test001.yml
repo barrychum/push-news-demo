@@ -42,7 +42,7 @@ jobs:
 
         SEPARATOR='~'
         last_PublicationDate="$current_time"
-
+        echo ${{ steps.fetch_news.outputs.response }}
         echo ${{ steps.fetch_news.outputs.response }} | jq -r --arg sep "$SEPARATOR" 'sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | join($sep)' | while IFS="$SEPARATOR" read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
 
           webPublicationUnixTimestamp=$(date -d "$webPublicationDate" "+%s")
