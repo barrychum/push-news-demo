@@ -38,7 +38,7 @@ jobs:
             if [[ "$type" != "liveblog" ]]; then
                 formatted="test"
                 tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$webTitle")
-                echo "$tg_message"
+                echo "tg_message=$tg_message" >> $GITHUB_OUTPUT
             else
                 status=" ignore live "
             fi
