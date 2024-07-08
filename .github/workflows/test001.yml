@@ -38,9 +38,39 @@ jobs:
         CURRENT=$(date -u +'%s')
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
 
+        current_time=$(date +"%s")
+
+        SEPARATOR='~'
+        last_PublicationDate="$current_time"
+
+        echo ${{ steps.fetch_news.outputs.response }} | jq -r --arg sep "$SEPARATOR" 'sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | join($sep)' | while IFS="$SEPARATOR" read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
+
+          webPublicationUnixTimestamp=$(date -d "$webPublicationDate" "+%s")
+          last_PublicationDate=$webPublicationUnixTimestamp
+          diff_minutes=$(((current_time - webPublicationUnixTimestamp) / 60))
+
+          if [ $last_timestamp -le $webPublicationUnixTimestamp ]; then
+            if [ "$type" != "liveblog" ]; then
+              formatted=$(date -d "@$webPublicationUnixTimestamp" "+%d %B, %H:%M")
+              formatted=${formatted/#0/}
+
+              url_to_shorten="$webUrl"
+              api_endpoint="https://is.gd/create.php"
+              shorturl=$(curl -s -d "format=simple&url=${url_to_shorten}" "${api_endpoint}")
+
+              if [ -z $shorturl ]; then
+                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$webTitle")
+              else
+                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$shorturl")
+              fi
+              echo "tg_message=$tg_message" >> $GITHUB_OUTPUT
+            fi
+          fi
+        done
+
     - name: Send Telegram messsage
       uses: stellarhub/telegram-message-action@v1
       with:
         chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
         token: ${{ secrets.TELEGRAM_BOT_KEY }}
-        message: ${{ steps.fetch_news.outputs.value }}
+        message: ${{ steps.process_news.outputs.tg_message }}
