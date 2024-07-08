@@ -32,6 +32,9 @@ jobs:
         fi
         echo "response=$formatted_json_data" >> $GITHUB_OUTPUT
         echo "$formatted_json_data"
+        echo "$VALUE"
+        echo "$PAGE_SIZE"
+        echo "$response"
 
     - name: Process News
       id: process_news
