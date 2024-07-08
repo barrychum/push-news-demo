@@ -1,0 +1,46 @@
+name: test 001
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Generate badge data
+      id: badge_data
+      run: |
+        VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
+        echo "value=$VALUE" >> $GITHUB_OUTPUT
+
+    - name: Fetch Guardian News
+      id: fetch_news
+      run: |
+        VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
+        echo "value=$VALUE" >> $GITHUB_OUTPUT
+
+        API_KEY=${{ vars.GUARDIAN_KEY }} 
+        URL="https://content.guardianapis.com/search"
+        ORDER_BY="newest"  
+        PAGE_SIZE=50    
+        response=$(curl -s -G --data-urlencode "api-key=${API_KEY}" --data-urlencode "order-by=${ORDER_BY}" --data-urlencode "page-size=${PAGE_SIZE}" "${URL}")
+        if [[ $(echo "$response" | jq -r '.response.status') == "ok" ]]; then
+          stageresult=$(echo "$response" | jq -r '.response.results[]')
+          formatted_json_data=$(echo "$stageresult" | sed 's/}/},/g' | sed '$ s/,$//')
+          formatted_json_data="[$formatted_json_data]"
+        fi
+        echo "response=$formatted_json_data" >> $GITHUB_OUTPUT
+
+    - name: Process News
+      id: process_news
+      run: |
+        CURRENT=$(date -u +'%s')
+        echo "current=$CURRENT" >> $GITHUB_OUTPUT
+
+    - name: Send Telegram messsage
+      uses: stellarhub/telegram-message-action@v1
+      with:
+        chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_KEY }}
+        message: ${{ steps.fetch_news.outputs.value }}
