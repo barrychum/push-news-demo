@@ -23,7 +23,7 @@ jobs:
         cat <<EOF > $JSON
         {
           "schemaVersion": 1,
-          "label": "last run",
+          "label": "last news update",
           "message": "$BADGE_VALUE",
           "color": "green"
         }
