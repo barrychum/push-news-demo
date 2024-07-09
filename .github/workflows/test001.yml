@@ -17,8 +17,7 @@ jobs:
     - name: Generate badge data
       id: badge_data
       run: |
-        TZ="Europe/London"
-        BADGE_VALUE=$(date +"%Y-%m-%d %H:%M:%S" -d "TZ=\"$TZ\"")
+        BADGE_VALUE=$(date -u +'%Y-%m-%d %H:%M:%SZ')
         JSON="guardian-news-last-run-badge.json"
         echo "json=$JSON" >> $GITHUB_OUTPUT
         cat <<EOF > $JSON
