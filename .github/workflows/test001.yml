@@ -17,12 +17,12 @@ jobs:
     - name: Get last fetch time
       id: get_last_fetch_time
       run: |
-        gist_id=${{ vars.GIST_PERSISTANT_VARIABLE }}
-        gist_filename=${{ vars.GIST_LAST_GUARDIAN_FETCH }}
+        gist_id="${{ vars.GIST_PERSISTANT_VARIABLE }}"
+        gist_filename="${{ vars.GIST_LAST_GUARDIAN_FETCH }}"
 
         echo "ID : $gist_id"
         echo "Filename : $gist_filename"
-        
+
         api_url="https://api.github.com/gists/$gist_id"
         raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
 
