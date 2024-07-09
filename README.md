@@ -15,6 +15,7 @@ This repository demonstrates a GitHub workflow that fetches content from the Gua
 
 ## Telegram Channel
 Subscribe to the Telegram channel https://t.me/demo_channel_all
+You can open the link from a device, mobile or desktop, with Telegram installed.
 
 ## Examples
 1. **News Polling**: Regularly fetches latest news headlines.
