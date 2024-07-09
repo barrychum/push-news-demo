@@ -29,10 +29,15 @@ jobs:
             --data-urlencode "order-by=$ORDER_BY" \
             --data-urlencode "page-size=$PAGE_SIZE" \
             "$URL")
-        echo "response=$response" >> $GITHUB_OUTPUT
-
-        current_time=$(date +"%s")
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
+
+        echo "response=$sorted_data" >> $GITHUB_OUTPUT
+
+    - name: Process Guardian News
+      id: process_news
+      run: |
+        current_time=$(date +"%s")
+        sorted_date=${{ steps.fetch_news.outputs.response }}
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
