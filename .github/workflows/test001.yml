@@ -35,7 +35,7 @@ jobs:
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
-        PAGE_SIZE=200
+        PAGE_SIZE=50
         response=$(curl -s -G \
             --data-urlencode "api-key=$API_KEY" \
             --data-urlencode "order-by=$ORDER_BY" \
