@@ -43,15 +43,12 @@ jobs:
           format="+%d %B, %H:%M"
           formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
           formatted=${formatted/#0/}
-          echo "formatted : $formatted"
 
-          uses: stellarhub/telegram-message-action@v1
-          with:
-            chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
-            token: ${{ secrets.TELEGRAM_BOT_KEY }}
-            message: "test"
+          shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
+          tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
 
+          echo "$tg_message"
         done < <(echo "$sorted_data")
 
     - name: Process News
@@ -60,7 +57,6 @@ jobs:
         CURRENT=$(date -u +'%s')
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
         echo ${{ steps.fetch_news.outputs.response }}
-
 
     - name: Send Telegram messsage
       uses: stellarhub/telegram-message-action@v1
