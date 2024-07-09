@@ -37,7 +37,13 @@ jobs:
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
-          echo "$diff_minutes"
+          echo "$diff_minutes minutes ago"
+
+          TZ='Europe/London'
+          format="+%d %B, %H:%M"
+          formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
+          formatted=${formatted/#0/}
+          echo "formatted : $formatted"
 
         done < <(echo "$sorted_data")
 
