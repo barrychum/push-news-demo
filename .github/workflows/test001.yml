@@ -48,6 +48,8 @@ jobs:
 
           tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
 
+          tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
+
           echo "$tg_message"
         done < <(echo "$sorted_data")
 
@@ -58,9 +60,4 @@ jobs:
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
         echo ${{ steps.fetch_news.outputs.response }}
 
-    - name: Send Telegram messsage
-      uses: stellarhub/telegram-message-action@v1
-      with:
-        chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_KEY }}
-        message: ${{ steps.process_news.outputs.current }}
+
