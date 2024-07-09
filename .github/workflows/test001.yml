@@ -14,12 +14,26 @@ jobs:
         VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
         echo "value=$VALUE" >> $GITHUB_OUTPUT
 
+    - name: Get last fetch time
+      id: get_last_fetch_time
+      run: |
+        gist_id=${{ GIST_PERSISTANT_VARIABLE }}
+        gist_filename=${{ GIST_LAST_GUARDIAN_FETCH }}
+
+        api_url="https://api.github.com/gists/$gist_id"
+        raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
+
+        content=$(curl -sSL "$raw_url" | head -n 1)
+        echo "last=$content" >> $GITHUB_OUTPUT
+
     - name: Fetch Guardian News
       id: fetch_news
       run: |
         VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
         echo "value=$VALUE" >> $GITHUB_OUTPUT
 
+        last_fetch=${{ steps.get_last_fetch_time.outputs.last }}
+        
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
@@ -31,6 +45,8 @@ jobs:
             "$URL")
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
+        # Looks like there is a size limit on the value
+        # using GITHUB_OUTPUT.  Use a file instead
         #echo "response=$sorted_data" >> $GITHUB_OUTPUT
         echo "$sorted_data" > response.txt
 
@@ -56,7 +72,6 @@ jobs:
 
           tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
 
-          echo "$tg_message"
         done < <(echo "$sorted_data")
 
     - name: Process News
