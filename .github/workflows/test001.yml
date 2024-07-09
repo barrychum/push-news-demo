@@ -34,7 +34,7 @@ jobs:
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
         echo $sorted_data | while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
-          echo "$webPublicationDate"
+          date -d "$webPublicationDate"
 
         done
 
