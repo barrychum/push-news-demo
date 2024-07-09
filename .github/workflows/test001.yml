@@ -68,6 +68,7 @@ jobs:
             case "$type" in
             liveblog)
               status=" ignore live "
+              echo " ignore live"
               ;;
             article)
               TZ='Europe/London'
@@ -79,13 +80,14 @@ jobs:
 
               tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
 
+              echo "TG message : $tg_message"
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
               ;;
             crossword)
-              status="- crossword -"
+              echo "ignore crossword"
               ;;
             *)
-              status="-- unknown --"
+              echo "ignore unknown"
               ;;
             esac
           fi
