@@ -13,48 +13,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Generate dummy data
+    # Generate json for shields.io Endpoint badge
+    - name: Generate badge data
       id: badge_data
       run: |
-        VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
-        echo "value=$VALUE" >> $GITHUB_OUTPUT
+        TZ="Europe/London"
+        BADGE_VALUE=$(date +"%Y-%m-%d %H:%M:%S" -d "TZ=\"$TZ\"")
+        JSON="guardian-news-last-run-badge.json"
+        echo "json=$JSON" >> $GITHUB_OUTPUT
+        cat <<EOF > $JSON
+        {
+          "schemaVersion": 1,
+          "label": "last run",
+          "message": "$BADGE_VALUE",
+          "color": "green"
+        }
+        EOF
+
+    # Upload json from step badge_data 
+    # to gist for shields.io Endpoint badge
+    - name: Update gist run time badge
+      uses: stellarhub/push-gist-action@v1
+      with:
+        token: ${{ secrets.GIST_TOKEN }}
+        gist_id: "${{ vars.GIST_PERSISTANT_VARIABLE }}"
+        file_path: ${{ steps.badge_data.outputs.json }}
+        file_type: text
 
     - name: Get last fetch time
       id: get_last_fetch_time
       run: |
+        # beware there may be seconds of delay 
+        # to get the latest gist content
         gist_id="${{ vars.GIST_PERSISTANT_VARIABLE }}"
         gist_filename="${{ vars.GIST_LAST_GUARDIAN_FETCH }}"
 
         api_url="https://api.github.com/gists/$gist_id"
         raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
 
-        content=$(curl -sSL "$raw_url")
-        echo "last=$content" >> $GITHUB_OUTPUT
+        gist_content=$(curl -sSL "$raw_url")
+        echo "last=$gist_content" >> $GITHUB_OUTPUT
 
-    - name: Fetch Guardian News
-      id: fetch_news
+    - name: Fetch Guardian content
       run: |
-        VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
-        echo "value=$VALUE" >> $GITHUB_OUTPUT
-
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
         PAGE_SIZE=50
+
         response=$(curl -s -G \
             --data-urlencode "api-key=$API_KEY" \
             --data-urlencode "order-by=$ORDER_BY" \
             --data-urlencode "page-size=$PAGE_SIZE" \
             "$URL")
+        
+        # for the response by publicationDate to process oldest items first
+        # using order-by seems to have problem without specifying a date
+        # which makes the logic more complex
+        # format it as tsv for reading in the next step
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
-        # Looks like there is a size limit on the value
-        # using GITHUB_OUTPUT.  Use a file instead
-        #echo "response=$sorted_data" >> $GITHUB_OUTPUT
+        # save response to a file due to size limit of GITHUB_OUTPUT
         echo "$sorted_data" > response.txt
 
-    - name: Process Guardian News
-      id: process_news
+    - name: Process Guardian content
       run: |
         current_time=$(date +"%s")
         sorted_data=$(cat response.txt)
