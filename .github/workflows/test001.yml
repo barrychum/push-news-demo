@@ -37,7 +37,7 @@ jobs:
       id: process_news
       run: |
         current_time=$(date +"%s")
-        sorted_date=${{ steps.fetch_news.outputs.response }}
+        sorted_data=${{ steps.fetch_news.outputs.response }}
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
