@@ -31,10 +31,13 @@ jobs:
             "$URL")
         echo "response=$response" >> $GITHUB_OUTPUT
 
+        current_time=$(date +"%s")
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
-          date -d "$webPublicationDate" 
+          pubunixtime=$(date -d "$webPublicationDate" "+%s")
+          diff_minutes=$((($current_time - $pubunixtime) / 60))
+          echo "$diff_minutes"
 
         done < <(echo "$sorted_data")
 
