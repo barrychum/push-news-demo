@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Generate badge data
+    - name: Generate dummy data
       id: badge_data
       run: |
         VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
@@ -44,6 +44,13 @@ jobs:
           formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
           formatted=${formatted/#0/}
           echo "formatted : $formatted"
+
+          uses: stellarhub/telegram-message-action@v1
+          with:
+            chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
+            token: ${{ secrets.TELEGRAM_BOT_KEY }}
+            message: "test"
+
 
         done < <(echo "$sorted_data")
 
