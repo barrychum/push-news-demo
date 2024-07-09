@@ -59,6 +59,8 @@ jobs:
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
+          diff_minutes=$((($current_time - $pubunixtime) / 60))
+          echo "$webPublicationDate was $diff_minutes minutes ago"
 
           if [ "$pubunixtime" -gt "$last_fetch" ]; then
             last_fetch=$pubunixtime
@@ -68,9 +70,6 @@ jobs:
               status=" ignore live "
               ;;
             article)
-              diff_minutes=$((($current_time - $pubunixtime) / 60))
-              echo "$diff_minutes minutes ago"
-
               TZ='Europe/London'
               format="+%d %B, %H:%M"
               formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
