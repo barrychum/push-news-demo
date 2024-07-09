@@ -23,7 +23,7 @@ jobs:
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
         ORDER_BY="newest"  
-        PAGE_SIZE=2 
+        PAGE_SIZE=5
         response=$(curl -s -G \
             --data-urlencode "api-key=$API_KEY" \
             --data-urlencode "order-by=$ORDER_BY" \
@@ -31,22 +31,12 @@ jobs:
             "$URL")
         echo "response=$response" >> $GITHUB_OUTPUT
 
-        jq -r '.response.results[] | [.webPublicationDate, .sectionName, \
-          .pillarName, .type, .webTitle, .webUrl] | @tsv' <<<"$response" | \
-          while IFS=$'\t' read -r webPublicationDate sectionName pillarName type \ webTitle webUrl; do
-            status="---- NEW ----"
-            if [[ "$type" != "liveblog" ]]; then
-                formatted="test"
-                tg_message=$(printf "%s\n%s/%s/%s\n%s" "$formatted" "$sectionName" "$pillarName" "$type" "$webTitle")
-                echo "tg_message=$tg_message" >> $GITHUB_OUTPUT
-            else
-                status=" ignore live "
-            fi
+        sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
-            printf "%s (%d min ago) - %s/%s/%s\n%s\n-------%s--------\n" \
-                "$webPublicationDate" "$diff_minutes" "$sectionName" "$pillarName" "$type" "$webTitle" "$status"
-          done
+        echo $sorted_data | while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
+          publicationUnixtime=$(convert-iso2unixTimestamp $webPublicationDate)
 
+        done
 
     - name: Process News
       id: process_news
@@ -61,4 +51,4 @@ jobs:
       with:
         chat_id: ${{ vars.TELEGRAM_CHANNEL_ID }}
         token: ${{ secrets.TELEGRAM_BOT_KEY }}
-        message: ${{ steps.fetch_news.outputs.tg_message }}
+        message: ${{ steps.process_news.outputs.current }}
