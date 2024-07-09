@@ -20,10 +20,13 @@ jobs:
         gist_id=${{ vars.GIST_PERSISTANT_VARIABLE }}
         gist_filename=${{ vars.GIST_LAST_GUARDIAN_FETCH }}
 
+        echo "ID : $gist_id"
+        echo "Filename : $gist_filename"
+        
         api_url="https://api.github.com/gists/$gist_id"
         raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
 
-        content=$(curl -sSL "$raw_url" | head -n 1)
+        content=$(curl -sSL "$raw_url")
         echo "last=$content" >> $GITHUB_OUTPUT
 
     - name: Fetch Guardian News
