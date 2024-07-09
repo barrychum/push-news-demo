@@ -90,6 +90,8 @@ jobs:
               echo "ignore unknown"
               ;;
             esac
+          else
+            echo "old message"
           fi
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
