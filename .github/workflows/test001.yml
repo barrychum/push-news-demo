@@ -97,7 +97,18 @@ jobs:
       run: |
         CURRENT=$(date -u +'%s')
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
-        echo ${{ steps.fetch_news.outputs.response }}
-        echo ${{ steps.process_news.outputs.last }}
+
+        last_fetch="${{ steps.process_news.outputs.last }}"
+        GIST_TOKEN=${{ secrets.GIST_TOKEN }}
+        gist_filename=${{ vars.GIST_LAST_GUARDIAN_FETCH }}
+
+        gist_api_url="https://api.github.com/gists/$gist_id"
+        json_payload="{\"files\": {\"$gist_filename\": { \"content\": $(jq -R -s . <<< "$last_fetch")}}}"
+
+        response=$(curl -s -X PATCH "$gist_api_url" \
+          -H "Authorization: token $GIST_TOKEN" \
+          -H "Accept: application/vnd.github.+json" \
+          -H "Content-Type: application/json" \
+          -d "$json_payload")
 
 
