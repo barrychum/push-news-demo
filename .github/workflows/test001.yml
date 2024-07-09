@@ -20,9 +20,6 @@ jobs:
         gist_id="${{ vars.GIST_PERSISTANT_VARIABLE }}"
         gist_filename="${{ vars.GIST_LAST_GUARDIAN_FETCH }}"
 
-        echo "ID : $gist_id"
-        echo "Filename : $gist_filename"
-
         api_url="https://api.github.com/gists/$gist_id"
         raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
 
@@ -34,9 +31,6 @@ jobs:
       run: |
         VALUE=$(date -u +'%Y-%m-%d %H:%M:%S')
         echo "value=$VALUE" >> $GITHUB_OUTPUT
-
-        last_fetch=${{ steps.get_last_fetch_time.outputs.last }}
-        echo "LAST FETCH : $last_fetch"
 
         API_KEY=${{ secrets.GUARDIAN_KEY }} 
         URL="https://content.guardianapis.com/search"
@@ -60,28 +54,37 @@ jobs:
         current_time=$(date +"%s")
         sorted_data=$(cat response.txt)
 
+        last_fetch=${{ steps.get_last_fetch_time.outputs.last }}
+        echo "LAST FETCH : $last_fetch"
+
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
-          diff_minutes=$((($current_time - $pubunixtime) / 60))
-          echo "$diff_minutes minutes ago"
 
-          TZ='Europe/London'
-          format="+%d %B, %H:%M"
-          formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
-          formatted=${formatted/#0/}
+          if [ "$pubunixtime" -gt "$last_fetch" ]; then
+            last_fetch=$pubunixtime
 
-          shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
+            diff_minutes=$((($current_time - $pubunixtime) / 60))
+            echo "$diff_minutes minutes ago"
 
-          tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
+            TZ='Europe/London'
+            format="+%d %B, %H:%M"
+            formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
+            formatted=${formatted/#0/}
 
-          tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
+            shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
+            tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
+
+            tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
+          fi
         done < <(echo "$sorted_data")
+        echo "last=$last_fetch" >> $GITHUB_OUTPUT
 
-    - name: Process News
+    - name: Wrap up
       run: |
         CURRENT=$(date -u +'%s')
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
         echo ${{ steps.fetch_news.outputs.response }}
+        echo ${{ steps.process_news.outputs.last }}
 
 
