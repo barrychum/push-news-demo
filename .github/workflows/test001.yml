@@ -31,13 +31,14 @@ jobs:
             "$URL")
         sorted_data=$(echo "$response" | jq -r '.response.results | sort_by(.webPublicationDate) | .[] | [.webPublicationDate, .sectionName, .pillarName, .type, .webTitle, .webUrl] | @tsv')
 
-        echo "response=$sorted_data" >> $GITHUB_OUTPUT
+        #echo "response=$sorted_data" >> $GITHUB_OUTPUT
+        echo "$sorted_data" > response.txt
 
     - name: Process Guardian News
       id: process_news
       run: |
         current_time=$(date +"%s")
-        sorted_data=${{ steps.fetch_news.outputs.response }}
+        sorted_data=$(cat response.txt)
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
