@@ -3,9 +3,11 @@ name: test 001
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 0-6 * * *'
-    - cron: '*/10 7-22 * * *'
-    - cron: '*/30 23 * * *'
+    - cron: '0 0-5 * * *'
+    - cron: '*/5 6-8 * * *'
+    - cron: '*/15 9-18 * * *'
+    - cron: '*/30 19-20 * * *'
+    - cron: '0 21-23 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
