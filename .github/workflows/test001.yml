@@ -36,7 +36,7 @@ jobs:
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           date -d "$webPublicationDate" 
 
-        done <$(echo "$sorted_data")
+        done < <(echo "$sorted_data")
 
     - name: Process News
       id: process_news
