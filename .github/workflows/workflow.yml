@@ -95,9 +95,6 @@ jobs:
             last_fetch=$pubunixtime
 
             case "$type" in
-            liveblog)
-              status="ignore live blog"
-              ;;
             article)
               status="new article"
               TZ='Europe/London'
@@ -112,6 +109,9 @@ jobs:
               echo "TG message : $tg_message"
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
               ;;
+            liveblog)
+              status="ignore live blog"
+              ;;
             crossword)
               status="ignore crossword type"
               ;;
@@ -120,7 +120,7 @@ jobs:
               ;;
             esac
           else
-            status="ignore old message"
+            status="skip old message"
           fi
 
           printf "%s was %s minutes ago - %s\n" "$webPublicationDate" "$diff_minutes" "$status"
