@@ -84,7 +84,7 @@ jobs:
         sorted_data=$(cat response.txt)
 
         last_fetch=${{ steps.get_last_fetch_time.outputs.last }}
-        last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%S")
+        last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%SZ")
         printf "LAST FETCH : %s (%s)\n" "$last_fetch" "$last_fetch_formatted"
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
