@@ -13,7 +13,27 @@ Subscribe to the Telegram channel https://t.me/demo_channel_all to see it in act
 - Automates the entire process using GitHub Actions.
 
 ## Usage
-The workflow triggers at specified intervals to fetch the latest news and post it to the Telegram channel.  Please refers to the .github/workflows/workflow.yml for details.
+The workflow triggers at specified intervals to fetch the latest news and post it to the Telegram channel.  Please refers to the .github/workflows/workflow.yml for details.  
+
+A workflow can also be triggered by an external event.  
+In the workflow.yml add the following name
+```
+on:
+  repository_dispatch:
+    types: [your-trigger-name]
+```
+
+On the triggering side, send a HTTP POST request to the github api
+```
+curl -X POST \
+  -H "Accept: application/vnd.github.+json" \
+  -H "Authorization: token <YOUR_PERSONAL_ACCESS_TOKEN>" \
+  https://api.github.com/repos/<OWNER>/<REPO>/dispatches \
+  -d '{"event_type":"<your-trigger-name>"}'
+```
+
+Change YOUR_PERSONAL_ACCESS_TOKEN, OWNER, REPO, your-trigger-name accordingly.
+
 
 ## Conclusion
 
