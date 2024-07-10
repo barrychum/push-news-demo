@@ -9,7 +9,7 @@ on:
     - cron: '0/30 19-20 * * *'
     - cron: '0 21-23 * * *'
   repository_dispatch:
-    types: [${{ secrets.TRIGGER_NAME }}]
+    types: [trigger-name]
 
 jobs:
   build:
