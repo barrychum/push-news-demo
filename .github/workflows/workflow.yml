@@ -87,6 +87,8 @@ jobs:
         last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%SZ")
         printf "Last fetched message : %s (%s)\n" "$last_fetch_formatted" "$last_fetch" 
 
+        declare -a processed
+
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
@@ -102,9 +104,18 @@ jobs:
               formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
               formatted=${formatted/#0/}
 
+
+              if [[ " ${processed[@]} " =~ " ${webUrl} " ]]; then
+                processed_status=" (Updated)"
+              else
+                processed_status=""
+                processed+=("$webUrl")
+              fi
+
+
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
-              tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
+              tg_message=$(printf "%s%s\n%s/%s %s" "$formatted" "processed_status" "$sectionName" "$pillarName" "$shorturl")
 
               echo "TG message : $tg_message"
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
