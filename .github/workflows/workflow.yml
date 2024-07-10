@@ -101,7 +101,7 @@ jobs:
               ;;
             article)
               TZ='Europe/London'
-              format="+%d %B, %H:%M"
+              format="+%d %B, %H:%M UK time"
               formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
               formatted=${formatted/#0/}
 
