@@ -89,17 +89,16 @@ jobs:
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
-          echo "$webPublicationDate was $diff_minutes minutes ago"
 
           if [ "$pubunixtime" -gt "$last_fetch" ]; then
             last_fetch=$pubunixtime
 
             case "$type" in
             liveblog)
-              status=" ignore live "
-              echo " ignore live"
+              status="ignore live blog"
               ;;
             article)
+              status="new article"
               TZ='Europe/London'
               format="+%d %B, %H:%M UK time"
               formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
@@ -113,15 +112,17 @@ jobs:
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
               ;;
             crossword)
-              echo "ignore crossword"
+              status="ignore crossword type"
               ;;
             *)
-              echo "ignore unknown"
+              status="ignore unknown type"
               ;;
             esac
           else
-            echo "old message"
+            status="ignore old message"
           fi
+
+          printf "%s was %s minutes ago - %s\n" "$webPublicationDate" "$diff_minutes" "$status"
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
         echo "$last_fetch" > ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
