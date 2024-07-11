@@ -5,7 +5,7 @@
 This repository demonstrates a GitHub workflow that fetches content from The Guardian, a popular UK news provider, and pushes it to a Telegram channel. This setup showcases the workflow's ability to poll various services and publish updates.
 
 ## Demo
-Subscribe to the Telegram channel https://t.me/demo_channel_all to see it in action. You can open the link from any device with Telegram installed.
+Subscribe to the Telegram channel https://t.me/news_demo to see it in action. You can open the link from any device with Telegram installed.
 
 ## Features
 - Fetches news content from The Guardian.
