@@ -87,18 +87,9 @@ jobs:
         last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%SZ")
         printf "Last fetched message : %s (%s)\n" "$last_fetch_formatted" "$last_fetch" 
 
-        declare -a processed
-
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
-
-          if [[ " ${processed[@]} " =~ " ${webUrl} " ]]; then
-            processed_status=" (Updated)"
-          else
-            processed_status=""
-            processed+=("$webUrl")
-          fi
 
           if [ "$pubunixtime" -gt "$last_fetch" ]; then
             last_fetch=$pubunixtime
@@ -113,7 +104,7 @@ jobs:
 
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
-              tg_message=$(printf "%s%s\n%s/%s %s" "$formatted" "$processed_status" "$sectionName" "$pillarName" "$shorturl")
+              tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
 
               echo "TG message : $tg_message"
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
@@ -136,8 +127,6 @@ jobs:
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
         echo "$last_fetch" > ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
-        last_three="${processed[@]: -5}"
-        echo "${last_three[@]}" > processed.log
 
     - name: Push file to Gist
       uses: stellarhub/push-gist-action@v1
@@ -146,11 +135,4 @@ jobs:
         gist_id: "${{ vars.GIST_PERSISTANT_VARIABLE }}"
         file_path: ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
         file_type: text
-
-    - name: Push file to Gist2
-      uses: stellarhub/push-gist-action@v1
-      with:
-        token: ${{ secrets.GIST_TOKEN }}
-        gist_id: "${{ vars.GIST_PERSISTANT_VARIABLE }}"
-        file_path: processed.log
-        file_type: text        
+ 
