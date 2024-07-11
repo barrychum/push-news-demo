@@ -136,7 +136,8 @@ jobs:
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
         echo "$last_fetch" > ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
-        echo "${processed[@]}" > processed.log
+        last_three="${processed[@]: -5}"
+        echo "${last_three[@]}" > processed.log
 
     - name: Push file to Gist
       uses: stellarhub/push-gist-action@v1
