@@ -105,7 +105,7 @@ jobs:
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
               tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
-              tg_message_encoded=$(echo "$tg_message" | jq -sRr @uri)
+              tg_message=$(echo "$tg_message" | sed 's/ & /+/g')
 
               echo "TG message : $tg_message"
               tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
