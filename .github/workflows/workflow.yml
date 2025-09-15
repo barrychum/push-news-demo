@@ -122,7 +122,7 @@ jobs:
               GOOGLE_API_KEY=${{ secrets.GOOGLE_AI_STUDIO_API_KEY }} 
               MODEL="gemini-2.5-flash"
               # Build prompt for Gemini
-              text="Please translate the following into zh-TW (Traditional Chinese). Do not give pinyin. Keep name of people and places.\n$webTitle"
+              text="Please translate the following into zh-TW (Traditional Chinese). Do not give pinyin.\n$webTitle"
 
               # Call Gemini API
               response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GOOGLE_API_KEY}" \
