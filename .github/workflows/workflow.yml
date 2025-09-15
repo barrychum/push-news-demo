@@ -61,10 +61,6 @@ jobs:
 
         raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
 
-        if [ -n "$raw_url" ] && [ "$raw_url" != "null" ]; then
-          break
-        fi
-
         if [ -z "$raw_url" ] || [ "$raw_url" = "null" ]; then
           echo "last=unknown" >> $GITHUB_OUTPUT
           exit 0
