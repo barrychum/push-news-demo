@@ -148,7 +148,7 @@ jobs:
 
 
 
-              tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
+              # tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
               tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
 
               echo "TG message : $tg_message"
