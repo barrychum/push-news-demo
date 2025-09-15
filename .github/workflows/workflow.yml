@@ -56,6 +56,13 @@ jobs:
         # Retry loop (up to 5 attempts with delay)
         for i in {1..5}; do
           resp=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$api_url")
+
+          echo "Gist response:"
+          echo "$resp" | jq .
+          echo "Files available in gist:"
+          echo "$resp" | jq -r '.files | keys[]'
+
+
           raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
 
           if [ -n "$raw_url" ] && [ "$raw_url" != "null" ]; then
