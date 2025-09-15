@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0-5 * * *'
-    - cron: '0/10 6-8 * * *'
-    - cron: '0/20 9-18 * * *'
-    - cron: '0/30 19-20 * * *'
-    - cron: '0 21-23 * * *'
+    #- cron: '0/10 6-8 * * *'
+    #- cron: '0/20 9-18 * * *'
+    #- cron: '0/30 19-20 * * *'
+    #- cron: '0 21-23 * * *'
   repository_dispatch:
     types: [trigger-name]
 
@@ -118,6 +118,7 @@ jobs:
               formatted=${formatted/#0/}
 
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
+              echo "$webTitle"
 
               tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
               tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
