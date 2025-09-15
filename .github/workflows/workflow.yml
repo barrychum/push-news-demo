@@ -52,26 +52,18 @@ jobs:
 
         api_url="https://api.github.com/gists/$gist_id"
 
+        resp=$(curl -sSL -H "Authorization: token ${{ secrets.GIST_TOKEN_2025 }}" "$api_url")
 
-        # Retry loop (up to 5 attempts with delay)
-        for i in {1..5}; do
-          resp=$(curl -sSL -H "Authorization: token ${{ secrets.GIST_TOKEN_2025 }}" "$api_url")
+        # echo "Gist response:"
+        # echo "$resp" | jq .
+        # echo "Files available in gist:"
+        # echo "$resp" | jq -r '.files | keys[]'
 
-          echo "Gist response:"
-          echo "$resp" | jq .
-          echo "Files available in gist:"
-          echo "$resp" | jq -r '.files | keys[]'
+        raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
 
-
-          raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
-
-          if [ -n "$raw_url" ] && [ "$raw_url" != "null" ]; then
-            break
-          fi
-
-          echo "File '$gist_filename' not found yet, retrying in 5s... ($i/5)"
-          sleep 5
-        done
+        if [ -n "$raw_url" ] && [ "$raw_url" != "null" ]; then
+          break
+        fi
 
         if [ -z "$raw_url" ] || [ "$raw_url" = "null" ]; then
           echo "last=unknown" >> $GITHUB_OUTPUT
