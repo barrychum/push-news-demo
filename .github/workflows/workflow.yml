@@ -51,7 +51,13 @@ jobs:
         gist_filename="${{ vars.GIST_LAST_GUARDIAN_FETCH }}"
 
         api_url="https://api.github.com/gists/$gist_id"
-        raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
+
+        # Fetch gist metadata with auth to avoid rate limit issues
+        resp=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$api_url")
+        # Extract raw_url
+        raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
+
+        # raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
 
         gist_content=$(curl -sSL "$raw_url")
         echo "last=$gist_content" >> $GITHUB_OUTPUT
