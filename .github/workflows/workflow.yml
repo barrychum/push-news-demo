@@ -139,7 +139,7 @@ jobs:
             status="skip old message"
           fi
 
-          printf "%s was %s minutes ago - %s\n" "$webPublicationDate" "$diff_minutes" "$status" "$webTitle"
+          printf "%s was %s minutes ago - %s\n%s\n" "$webPublicationDate" "$diff_minutes" "$status" "$webTitle"
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
         echo "$last_fetch" > ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
