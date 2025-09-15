@@ -42,19 +42,33 @@ jobs:
         file_path: ${{ steps.badge_data.outputs.json }}
         file_type: text
 
+
     - name: Get last fetch time
       id: get_last_fetch_time
       run: |
-        # beware there may be seconds of delay 
-        # to get the latest gist content
         gist_id="${{ vars.GIST_PERSISTANT_VARIABLE }}"
         gist_filename="${{ vars.GIST_LAST_GUARDIAN_FETCH }}"
 
         api_url="https://api.github.com/gists/$gist_id"
-        raw_url=$(curl -sSL "$api_url" | jq -r ".files[\"$gist_filename\"].raw_url")
+
+        # Fetch gist metadata with auth to avoid rate limit issues
+        resp=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$api_url")
+
+        # Debug if JSON parse fails
+        echo "$resp" | jq . >/dev/null || { echo "Invalid API response:"; echo "$resp"; exit 1; }
+
+        # Extract raw_url
+        raw_url=$(echo "$resp" | jq -r ".files[\"$gist_filename\"].raw_url")
+
+        if [ -z "$raw_url" ] || [ "$raw_url" = "null" ]; then
+          echo "File '$gist_filename' not found in gist $gist_id"
+          exit 1
+        fi
 
         gist_content=$(curl -sSL "$raw_url")
         echo "last=$gist_content" >> $GITHUB_OUTPUT
+
+
 
     - name: Fetch Guardian content
       run: |
