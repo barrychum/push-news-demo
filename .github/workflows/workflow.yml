@@ -55,7 +55,7 @@ jobs:
 
         # Retry loop (up to 5 attempts with delay)
         for i in {1..5}; do
-          resp=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$api_url")
+          resp=$(curl -sSL -H "Authorization: token ${{ secrets.GIST_TOKEN_2025 }}" "$api_url")
 
           echo "Gist response:"
           echo "$resp" | jq .
