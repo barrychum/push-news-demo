@@ -118,7 +118,6 @@ jobs:
               formatted=${formatted/#0/}
 
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
-              echo "$webTitle"
 
               tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
               tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
@@ -140,7 +139,7 @@ jobs:
             status="skip old message"
           fi
 
-          printf "%s was %s minutes ago - %s\n" "$webPublicationDate" "$diff_minutes" "$status"
+          printf "%s was %s minutes ago - %s\n" "$webPublicationDate" "$diff_minutes" "$status" "$webTitle"
         done < <(echo "$sorted_data")
         echo "last=$last_fetch" >> $GITHUB_OUTPUT
         echo "$last_fetch" > ${{ vars.GIST_LAST_GUARDIAN_FETCH }}
