@@ -119,6 +119,35 @@ jobs:
 
               shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
+              GOOGLE_API_KEY=${{ secrets.GOOGLE_AI_STUDIO_API_KEY }} 
+              MODEL="gemini-2.5-flash"
+              # Build prompt for Gemini
+              text="Please translate the following into zh-TW (Traditional Chinese). Do not give pinyin. Keep name of people. Translate place names but keep original name in brackets.\n$webTitle"
+
+              # Call Gemini API
+              response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GOOGLE_API_KEY}" \
+                -H 'Content-Type: application/json' \
+                -d "{
+                      \"contents\": [{
+                        \"parts\": [
+                          {\"text\": \"${text}\"}
+                        ]
+                      }]
+                    }")
+
+              # Extract translated text
+              webTranslated=$(echo "$response" | jq -r '.candidates[0].content.parts[0].text')
+
+              # Build Telegram message
+              tg_message=$(printf "%s\n%s/%s %s\n%s" \
+                  "$formatted" \
+                  "$sectionName" \
+                  "$pillarName" \
+                  "$webTranslated" \
+                  "$shorturl")
+
+
+
               tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
               tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
 
