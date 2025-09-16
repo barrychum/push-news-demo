@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0-5 * * *'
-    - cron: '0/10 6-8 * * *'
-    - cron: '0/20 9-18 * * *'
-    - cron: '0/30 19-20 * * *'
-    - cron: '0 21-23 * * *'
+    #- cron: '0/10 6-8 * * *'
+    #- cron: '0/20 9-18 * * *'
+    #- cron: '0/30 19-20 * * *'
+    #- cron: '0 21-23 * * *'
   repository_dispatch:
     types: [trigger-name]
 
@@ -102,69 +102,79 @@ jobs:
         last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%SZ")
         printf "Last fetched message : %s (%s)\n" "$last_fetch_formatted" "$last_fetch" 
 
+        seen_urls=""
+
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
 
+          seen_urls="$seen_urls"$'\n'"$webUrl"
+
           if [ "$pubunixtime" -gt "$last_fetch" ]; then
             last_fetch=$pubunixtime
 
-            case "$type" in
-            article)
-              status="new article"
-              TZ='Europe/London'
-              format="+%d %B, %H:%M UK time"
-              formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
-              formatted=${formatted/#0/}
+              case "$type" in
+              article)
+                status="new article"
+                TZ='Europe/London'
+                format="+%d %B, %H:%M UK time"
+                formatted=$(TZ=$TZ date -d "@$pubunixtime" "$format")
+                formatted=${formatted/#0/}
 
-              shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
+                count=$(grep -Fxc "$webUrl" <<< "$seen_urls")
 
-              GOOGLE_API_KEY=${{ secrets.GEMINI_API_KEY }} 
-              MODEL="gemini-2.5-flash"
-              # Build prompt for Gemini
-              text="Please translate the following into zh-TW (Traditional Chinese). Do not give pinyin.\n$webTitle"
+                if [ "$count" -gt 1 ]; then
+                  status="url found. updated post"
+                else
 
-              # Call Gemini API
-              response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GOOGLE_API_KEY}" \
-                -H 'Content-Type: application/json' \
-                -d "{
-                      \"contents\": [{
-                        \"parts\": [
-                          {\"text\": \"${text}\"}
-                        ]
-                      }]
-                    }")
+                  shorturl=$(curl -s -d "format=simple&url=$webUrl" "https://is.gd/create.php")
 
-              # Extract translated text
-              webTranslated=$(echo "$response" | jq -r '.candidates[0].content.parts[0].text')
+                  GOOGLE_API_KEY=${{ secrets.GEMINI_API_KEY }} 
+                  MODEL="gemini-2.5-flash"
+                  # Build prompt for Gemini
+                  text="Please translate the following into zh-TW (Traditional Chinese). Do not give pinyin.\n$webTitle"
 
-              # Build Telegram message
-              tg_message=$(printf "%s\n%s/%s %s\n%s" \
-                  "$formatted" \
-                  "$sectionName" \
-                  "$pillarName" \
-                  "$shorturl" \
-                  "$webTranslated" \
-                  )
+                  # Call Gemini API
+                  response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GOOGLE_API_KEY}" \
+                    -H 'Content-Type: application/json' \
+                    -d "{
+                          \"contents\": [{
+                            \"parts\": [
+                              {\"text\": \"${text}\"}
+                            ]
+                          }]
+                        }")
 
+                  # Extract translated text
+                  webTranslated=$(echo "$response" | jq -r '.candidates[0].content.parts[0].text')
 
+                  # Build Telegram message
+                  tg_message=$(printf "%s\n%s/%s %s\n%s" \
+                      "$formatted" \
+                      "$sectionName" \
+                      "$pillarName" \
+                      "$shorturl" \
+                      "$webTranslated" \
+                      )
 
-              # tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
-              tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
+                  # tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
+                  tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
 
-              echo "TG message : $tg_message"
-              tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
-              ;;
-            liveblog)
-              status="ignore live blog"
-              ;;
-            crossword)
-              status="ignore crossword type"
-              ;;
-            *)
-              status="ignore unknown type"
-              ;;
-            esac
+                  echo "TG message : $tg_message"
+                  tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
+                fi
+                ;;
+              liveblog)
+                status="ignore live blog"
+                ;;
+              crossword)
+                status="ignore crossword type"
+                ;;
+              *)
+                status="ignore unknown type"
+                ;;
+              esac
+
           else
             status="skip old message"
           fi
