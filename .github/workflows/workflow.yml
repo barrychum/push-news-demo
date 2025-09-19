@@ -102,7 +102,7 @@ jobs:
         last_fetch_formatted=$(date -d "@$last_fetch" +"%Y-%m-%d %H:%M:%SZ")
         printf "Last fetched message : %s (%s)\n" "$last_fetch_formatted" "$last_fetch" 
 
-        seen_urls=""
+        seen_urls="Seen URLs\nline2\n"
 
         while IFS=$'\t' read -r webPublicationDate sectionName pillarName type webTitle webUrl; do
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
