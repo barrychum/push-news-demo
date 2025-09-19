@@ -122,6 +122,7 @@ jobs:
                 formatted=${formatted/#0/}
 
                 count=$(grep -Fxc "$webUrl" <<< "$seen_urls")
+                echo $count
 
                 if [ "$count" -gt 1 ]; then
                   status="url found. updated post"
