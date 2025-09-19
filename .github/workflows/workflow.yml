@@ -158,13 +158,13 @@ jobs:
                       "$webTranslated" \
                       )
 
-                  # tg_message=$(printf "%s\n%s/%s %s" "$formatted" "$sectionName" "$pillarName" "$shorturl")
                   tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
+                  tg_message=$(echo "$tg_message" | sed 's/ and / n /g')
+                  tg_message=$(echo "$tg_message" | sed 's/Television/TV/g')
 
                   status=$(printf "%s\nTG message: %s" "$status" "$tg_message")
                   #disable_preview="true"
                   disable_preview="false"
-                  ##tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d ##chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
 
                   # Send the message with the link preview disabled
                   tg_response=$(curl -s -X POST \
