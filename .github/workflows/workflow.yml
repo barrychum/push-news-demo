@@ -108,7 +108,7 @@ jobs:
           pubunixtime=$(date -d "$webPublicationDate" "+%s")
           diff_minutes=$((($current_time - $pubunixtime) / 60))
 
-          seen_urls=$(printf %s\n%s" "$seen_urls" "$webUrl")
+          seen_urls=$(printf "%s\n%s" "$seen_urls" "$webUrl")
 
           if [ "$pubunixtime" -gt "$last_fetch" ]; then
             last_fetch=$pubunixtime
