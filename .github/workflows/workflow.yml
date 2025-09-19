@@ -161,6 +161,8 @@ jobs:
                   tg_message=$(echo "$tg_message" | sed 's/ & / n /g')
 
                   status=$(printf "%s\nTG message: %s" "$status" "$tg_message")
+                  #disable_preview="true"
+                  disable_preview="false"
                   ##tg_response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" -d ##chat_id="${{ vars.TELEGRAM_CHANNEL_ID }}" -d text="$tg_message")
 
                   # Send the message with the link preview disabled
@@ -168,7 +170,7 @@ jobs:
                     "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_KEY }}/sendMessage" \
                     -d "chat_id=${{ vars.TELEGRAM_CHANNEL_ID }}" \
                     -d "text=$tg_message" \
-                    -d "disable_web_page_preview=true")
+                    -d "disable_web_page_preview=$disable_preview")
                 fi
                 ;;
               liveblog)
